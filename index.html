@@ -3,70 +3,127 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>旅遊分帳（完整版）</title>
+  <title>旅遊分帳（每筆支出＋勾選人）</title>
+
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
       background:#f5f5f5;
       padding:20px;
     }
+
     .container {
-      max-width:900px;
+      max-width: 960px;
       margin:auto;
       background:#fff;
       padding:20px;
       border-radius:12px;
       box-shadow:0 4px 12px rgba(0,0,0,.08);
     }
+
+    h1 {
+      margin-bottom:16px;
+    }
+
     table {
       width:100%;
       border-collapse:collapse;
       margin-bottom:16px;
     }
+
     th, td {
       border-bottom:1px solid #e0e0e0;
       padding:8px;
       text-align:left;
+      vertical-align: top;
     }
+
     input, select {
-      padding:6px;
       width:100%;
+      padding:6px;
+      box-sizing:border-box;
     }
+
+    .item-cell {
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+
+    .item-cell input {
+      flex:1;
+    }
+
     .people label {
-      margin-right:8px;
+      margin-right:10px;
       white-space:nowrap;
+      display:inline-block;
     }
+
     button {
-      padding:10px 14px;
+      padding:8px 12px;
       border:none;
       border-radius:8px;
       cursor:pointer;
+      font-size:14px;
     }
-    .add { background:#4c65ea; color:#fff; }
-    .calc { background:#2e7d32; color:#fff; width:100%; margin-top:10px; }
-    .result { background:#f0f3ff; padding:12px; border-radius:8px; }
+
+    .btn-add {
+      background:#4c65ea;
+      color:#fff;
+      margin-right:8px;
+    }
+
+    .btn-calc {
+      background:#2e7d32;
+      color:#fff;
+      width:100%;
+      margin-top:12px;
+    }
+
+    .btn-delete {
+      background:#eee;
+      color:#666;
+      padding:6px 8px;
+      border-radius:6px;
+    }
+
+    .btn-delete:hover {
+      background:#ffebee;
+      color:#c62828;
+    }
+
+    .result {
+      background:#f0f3ff;
+      padding:14px;
+      border-radius:8px;
+      margin-top:16px;
+    }
+
+    .result h3 {
+      margin-top:0;
+    }
   </style>
 </head>
-<body>
 
+<body>
 <div class="container">
   <h1>旅遊分帳（每筆支出＋勾選人）</h1>
 
   <table id="expenseTable">
     <thead>
       <tr>
-        <th>項目</th>
-        <th>金額</th>
-        <th>誰付</th>
+        <th style="width:28%;">項目</th>
+        <th style="width:12%;">金額</th>
+        <th style="width:14%;">誰付</th>
         <th>參與者</th>
-        <th></th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
-  <button class="add" onclick="addRow()">＋ 新增支出</button>
-  <button class="calc" onclick="calculate()">計算分帳結果</button>
+  <button class="btn-add" onclick="addRow()">＋ 新增支出</button>
+  <button class="btn-calc" onclick="calculate()">計算分帳結果</button>
 
   <div class="result" id="result"></div>
 </div>
@@ -82,30 +139,44 @@ function addRow() {
   ).join('');
 
   tr.innerHTML = `
-    <td><input type="text" placeholder="例如：晚餐"></td>
+    <td>
+      <div class="item-cell">
+        <input type="text" placeholder="例如：高雄—東港碼頭">
+        <button class="btn-delete" onclick="this.closest('tr').remove()" title="刪除">✕</button>
+      </div>
+    </td>
     <td><input type="number" placeholder="金額"></td>
     <td>
-      <select>${people.map(p=>`<option>${p}</option>`).join('')}</select>
+      <select>
+        ${people.map(p => `<option>${p}</option>`).join('')}
+      </select>
     </td>
     <td class="people">${checkboxes}</td>
-    <td><button onclick="this.closest('tr').remove()">刪除</button></td>
   `;
+
   document.querySelector('#expenseTable tbody').appendChild(tr);
 }
 
+// 預設先有一筆
 addRow();
 
 function calculate() {
   const rows = document.querySelectorAll('#expenseTable tbody tr');
   const paid = {}, shouldPay = {};
-  people.forEach(p => { paid[p]=0; shouldPay[p]=0; });
+
+  people.forEach(p => {
+    paid[p] = 0;
+    shouldPay[p] = 0;
+  });
 
   rows.forEach(row => {
     const amount = Number(row.children[1].querySelector('input').value);
     if (!amount) return;
 
     const payer = row.children[2].querySelector('select').value;
-    const participants = [...row.children[3].querySelectorAll('input:checked')].map(i=>i.value);
+    const participants = [...row.children[3].querySelectorAll('input:checked')]
+      .map(i => i.value);
+
     if (participants.length === 0) return;
 
     paid[payer] += amount;
@@ -119,21 +190,27 @@ function calculate() {
   let html = '<h3>結算結果</h3>';
   people.forEach(p => {
     const b = balance[p];
-    if (Math.abs(b) < 1) html += `<p>${p}：打平</p>`;
-    else if (b > 0) html += `<p>${p}：應收 ${b.toFixed(0)}</p>`;
-    else html += `<p>${p}：應付 ${Math.abs(b).toFixed(0)}</p>`;
+    if (Math.abs(b) < 1) {
+      html += `<p>${p}：打平</p>`;
+    } else if (b > 0) {
+      html += `<p>${p}：應收 ${b.toFixed(0)}</p>`;
+    } else {
+      html += `<p>${p}：應付 ${Math.abs(b).toFixed(0)}</p>`;
+    }
   });
 
   html += '<hr><h3>建議轉帳</h3>';
 
-  const debtors = people.filter(p=>balance[p]<0).map(p=>({p,amt:-balance[p]}));
-  const creditors = people.filter(p=>balance[p]>0).map(p=>({p,amt:balance[p]}));
+  const debtors = people.filter(p => balance[p] < 0)
+    .map(p => ({ name: p, amt: -balance[p] }));
+  const creditors = people.filter(p => balance[p] > 0)
+    .map(p => ({ name: p, amt: balance[p] }));
 
   debtors.forEach(d => {
     creditors.forEach(c => {
-      if (d.amt>0 && c.amt>0) {
+      if (d.amt > 0 && c.amt > 0) {
         const pay = Math.min(d.amt, c.amt);
-        html += `<p>${d.p} → ${c.p}：${pay.toFixed(0)}</p>`;
+        html += `<p>${d.name} → ${c.name}：${pay.toFixed(0)}</p>`;
         d.amt -= pay;
         c.amt -= pay;
       }
@@ -143,6 +220,5 @@ function calculate() {
   document.getElementById('result').innerHTML = html;
 }
 </script>
-
 </body>
 </html>
