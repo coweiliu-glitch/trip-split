@@ -1,109 +1,148 @@
-index.html
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>六人旅遊分帳計算器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>旅遊分帳（完整版）</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 24px;
+      background:#f5f5f5;
+      padding:20px;
     }
     .container {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    h1 {
-      font-size: 20px;
-      margin-bottom: 16px;
+      max-width:900px;
+      margin:auto;
+      background:#fff;
+      padding:20px;
+      border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,.08);
     }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 16px;
+      width:100%;
+      border-collapse:collapse;
+      margin-bottom:16px;
     }
     th, td {
-      border-bottom: 1px solid #e0e0e0;
-      padding: 8px;
-      text-align: left;
+      border-bottom:1px solid #e0e0e0;
+      padding:8px;
+      text-align:left;
     }
-    input[type="number"] {
-      width: 100%;
-      padding: 6px;
-      box-sizing: border-box;
+    input, select {
+      padding:6px;
+      width:100%;
+    }
+    .people label {
+      margin-right:8px;
+      white-space:nowrap;
     }
     button {
-      width: 100%;
-      padding: 10px;
-      background: #4c65ea;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
+      padding:10px 14px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
     }
-    .result {
-      margin-top: 16px;
-      background: #f0f3ff;
-      padding: 12px;
-      border-radius: 8px;
-    }
-    .result p {
-      margin: 6px 0;
-    }
+    .add { background:#4c65ea; color:#fff; }
+    .calc { background:#2e7d32; color:#fff; width:100%; margin-top:10px; }
+    .result { background:#f0f3ff; padding:12px; border-radius:8px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>六人旅遊墊付分帳計算器</h1>
 
-    <table>
-      <tr><th>成員</th><th>墊付金額</th></tr>
-      <tr><td>A</td><td><input type="number" id="p1" value="0" /></td></tr>
-      <tr><td>B</td><td><input type="number" id="p2" value="0" /></td></tr>
-      <tr><td>C</td><td><input type="number" id="p3" value="0" /></td></tr>
-      <tr><td>D</td><td><input type="number" id="p4" value="0" /></td></tr>
-      <tr><td>E</td><td><input type="number" id="p5" value="0" /></td></tr>
-      <tr><td>F</td><td><input type="number" id="p6" value="0" /></td></tr>
-    </table>
+<div class="container">
+  <h1>旅遊分帳（每筆支出＋勾選人）</h1>
 
-    <button onclick="calculate()">計算分帳</button>
+  <table id="expenseTable">
+    <thead>
+      <tr>
+        <th>項目</th>
+        <th>金額</th>
+        <th>誰付</th>
+        <th>參與者</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <div class="result" id="result"></div>
-  </div>
+  <button class="add" onclick="addRow()">＋ 新增支出</button>
+  <button class="calc" onclick="calculate()">計算分帳結果</button>
 
-  <script>
-    function calculate() {
-      const payments = [
-        Number(p1.value), Number(p2.value), Number(p3.value),
-        Number(p4.value), Number(p5.value), Number(p6.value)
-      ];
+  <div class="result" id="result"></div>
+</div>
 
-      const total = payments.reduce((a, b) => a + b, 0);
-      const average = total / 6;
+<script>
+const people = ['克韋','逸洛','彥岑','凱文','A米','芳'];
 
-      let html = `<p>總金額：${total.toFixed(2)}</p>`;
-      html += `<p>每人應付：${average.toFixed(2)}</p><hr>`;
+function addRow() {
+  const tr = document.createElement('tr');
 
-      payments.forEach((pay, index) => {
-        const diff = pay - average;
-        if (diff > 0) {
-          html += `<p>${String.fromCharCode(65 + index)} 應收 ${diff.toFixed(2)}</p>`;
-        } else if (diff < 0) {
-          html += `<p>${String.fromCharCode(65 + index)} 應付 ${Math.abs(diff).toFixed(2)}</p>`;
-        } else {
-          html += `<p>${String.fromCharCode(65 + index)} 剛好打平</p>`;
-        }
-      });
+  const checkboxes = people.map(p =>
+    `<label><input type="checkbox" value="${p}" checked> ${p}</label>`
+  ).join('');
 
-      document.getElementById('result').innerHTML = html;
-    }
-  </script>
+  tr.innerHTML = `
+    <td><input type="text" placeholder="例如：晚餐"></td>
+    <td><input type="number" placeholder="金額"></td>
+    <td>
+      <select>${people.map(p=>`<option>${p}</option>`).join('')}</select>
+    </td>
+    <td class="people">${checkboxes}</td>
+    <td><button onclick="this.closest('tr').remove()">刪除</button></td>
+  `;
+  document.querySelector('#expenseTable tbody').appendChild(tr);
+}
+
+addRow();
+
+function calculate() {
+  const rows = document.querySelectorAll('#expenseTable tbody tr');
+  const paid = {}, shouldPay = {};
+  people.forEach(p => { paid[p]=0; shouldPay[p]=0; });
+
+  rows.forEach(row => {
+    const amount = Number(row.children[1].querySelector('input').value);
+    if (!amount) return;
+
+    const payer = row.children[2].querySelector('select').value;
+    const participants = [...row.children[3].querySelectorAll('input:checked')].map(i=>i.value);
+    if (participants.length === 0) return;
+
+    paid[payer] += amount;
+    const share = amount / participants.length;
+    participants.forEach(p => shouldPay[p] += share);
+  });
+
+  const balance = {};
+  people.forEach(p => balance[p] = paid[p] - shouldPay[p]);
+
+  let html = '<h3>結算結果</h3>';
+  people.forEach(p => {
+    const b = balance[p];
+    if (Math.abs(b) < 1) html += `<p>${p}：打平</p>`;
+    else if (b > 0) html += `<p>${p}：應收 ${b.toFixed(0)}</p>`;
+    else html += `<p>${p}：應付 ${Math.abs(b).toFixed(0)}</p>`;
+  });
+
+  html += '<hr><h3>建議轉帳</h3>';
+
+  const debtors = people.filter(p=>balance[p]<0).map(p=>({p,amt:-balance[p]}));
+  const creditors = people.filter(p=>balance[p]>0).map(p=>({p,amt:balance[p]}));
+
+  debtors.forEach(d => {
+    creditors.forEach(c => {
+      if (d.amt>0 && c.amt>0) {
+        const pay = Math.min(d.amt, c.amt);
+        html += `<p>${d.p} → ${c.p}：${pay.toFixed(0)}</p>`;
+        d.amt -= pay;
+        c.amt -= pay;
+      }
+    });
+  });
+
+  document.getElementById('result').innerHTML = html;
+}
+</script>
+
 </body>
 </html>
