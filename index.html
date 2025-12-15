@@ -1,0 +1,109 @@
+index.html
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>六人旅遊分帳計算器</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 24px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h1 {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    th, td {
+      border-bottom: 1px solid #e0e0e0;
+      padding: 8px;
+      text-align: left;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #4c65ea;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 16px;
+      background: #f0f3ff;
+      padding: 12px;
+      border-radius: 8px;
+    }
+    .result p {
+      margin: 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>六人旅遊墊付分帳計算器</h1>
+
+    <table>
+      <tr><th>成員</th><th>墊付金額</th></tr>
+      <tr><td>A</td><td><input type="number" id="p1" value="0" /></td></tr>
+      <tr><td>B</td><td><input type="number" id="p2" value="0" /></td></tr>
+      <tr><td>C</td><td><input type="number" id="p3" value="0" /></td></tr>
+      <tr><td>D</td><td><input type="number" id="p4" value="0" /></td></tr>
+      <tr><td>E</td><td><input type="number" id="p5" value="0" /></td></tr>
+      <tr><td>F</td><td><input type="number" id="p6" value="0" /></td></tr>
+    </table>
+
+    <button onclick="calculate()">計算分帳</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    function calculate() {
+      const payments = [
+        Number(p1.value), Number(p2.value), Number(p3.value),
+        Number(p4.value), Number(p5.value), Number(p6.value)
+      ];
+
+      const total = payments.reduce((a, b) => a + b, 0);
+      const average = total / 6;
+
+      let html = `<p>總金額：${total.toFixed(2)}</p>`;
+      html += `<p>每人應付：${average.toFixed(2)}</p><hr>`;
+
+      payments.forEach((pay, index) => {
+        const diff = pay - average;
+        if (diff > 0) {
+          html += `<p>${String.fromCharCode(65 + index)} 應收 ${diff.toFixed(2)}</p>`;
+        } else if (diff < 0) {
+          html += `<p>${String.fromCharCode(65 + index)} 應付 ${Math.abs(diff).toFixed(2)}</p>`;
+        } else {
+          html += `<p>${String.fromCharCode(65 + index)} 剛好打平</p>`;
+        }
+      });
+
+      document.getElementById('result').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
